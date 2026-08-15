@@ -126,6 +126,12 @@ Similar CRUD endpoints managed under `/api/categories`, `/api/suppliers`, and `/
 
 ---
 
+## Known Limitations
+
+- **Password Hashing:** Password authentication currently uses single-pass SHA-256 hashing (`SHA256.ComputeHash`). While salt is generated during authentication testing, key derivation functions such as BCrypt, Argon2, or PBKDF2 are recommended for high-security enterprise environments. SHA-256 is maintained in this release to preserve compatibility with seeded user credentials.
+
+---
+
 ## License
 
 MIT — see [LICENSE](LICENSE) file.
