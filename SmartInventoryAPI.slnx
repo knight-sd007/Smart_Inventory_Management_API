@@ -3,4 +3,5 @@
   <Project Path="SmartInventory.Application/SmartInventory.Application.csproj" />
   <Project Path="SmartInventory.Domain/SmartInventory.Domain.csproj" />
   <Project Path="SmartInventory.Infrastructure/SmartInventory.Infrastructure.csproj" />
+  <Project Path="tests/SmartInventory.Tests/SmartInventory.Tests.csproj" />
 </Solution>

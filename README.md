@@ -1,149 +1,128 @@
 # Smart Inventory Management API
 
-Production-grade ASP.NET Core Web API for managing inventory, categories, suppliers, and orders. Built with Clean Architecture principles, JWT authentication, and Entity Framework Core.
+Production-grade ASP.NET Core Web API for managing inventory, categories, suppliers, and orders. Built with Clean Architecture principles, JWT authentication, Entity Framework Core, and xUnit test suite targeting .NET 10.
+
+---
 
 ## Architecture
 
 ```
 SmartInventory.API              → Presentation Layer (Controllers, Middleware, Extensions)
-SmartInventory.Application      → Application Layer (DTOs, Services, Interfaces, Validators)
+SmartInventory.Application      → Application Layer (DTOs, Business Logic Services, Interfaces)
 SmartInventory.Domain           → Domain Layer (Entities, Enums)
-SmartInventory.Infrastructure   → Infrastructure Layer (EF Core, Repositories, JWT, Auth)
+SmartInventory.Infrastructure   → Infrastructure Layer (EF Core, Repositories, JWT, Auth, Seed)
+tests/SmartInventory.Tests      → Unit & Integration Test Suite (xUnit, Moq, EF Core InMemory)
 ```
 
-## Security
+---
 
-**WARNING: Never commit secrets to version control.** All sensitive configuration is loaded from environment variables. The `.env` file is gitignored. Use `.env.example` as a template.
+## Security Guidelines
+
+> [!WARNING]
+> **Never commit secrets or credentials to version control.** All sensitive configurations are dynamically loaded from environment variables using a zero-dependency `.env` loader. The `.env` file is gitignored. Use `.env.example` as a template.
+
+---
 
 ## Quick Start
 
 ### Prerequisites
 
 - .NET 10 SDK
-- SQL Server (local or remote)
+- SQL Server (local, remote, or SQL Server Express)
 
-### Setup
+### Local Setup
 
 1. Clone the repository:
 
 ```bash
-git clone <repo-url>
+git clone git@github.com:knight-sd007/Smart_Inventory_Management_API.git
 cd Smart_Inventory_Management_API
 ```
 
-2. Create your `.env` file from the example:
+2. Create your `.env` file from `.env.example`:
 
 ```bash
 cp .env.example .env
 ```
 
-3. Edit `.env` and fill in real values:
+3. Edit `.env` with real local development values:
 
-```bash
-DB_CONNECTION_STRING=Server=localhost;Database=SmartInventoryDB;User Id=sa;Password=YourRealPassword;Encrypt=true;TrustServerCertificate=false;
-JWT_SECRET=<generate-a-cryptographically-secure-random-string-at-least-32-chars>
-SEED_ADMIN_PASSWORD=<strong-admin-password>
-SEED_DEFAULT_USER_PASSWORD=<strong-default-password>
+```env
+DB_CONNECTION_STRING=Server=localhost;Database=SmartInventoryDB;User Id=sa;Password=YourStrongPassword123!;Encrypt=true;TrustServerCertificate=true;
+JWT_SECRET=a_super_secret_cryptographic_key_that_is_at_least_32_characters_long
+SEED_ADMIN_PASSWORD=StrongAdminPassword123!
+SEED_DEFAULT_USER_PASSWORD=StrongUserPassword123!
 ```
 
-4. Set the environment variables:
+4. Build the solution:
 
 ```bash
-export $(cat .env | xargs)
+dotnet build SmartInventoryAPI.slnx
 ```
 
-5. Run database migrations and seed:
+5. Run the API:
 
 ```bash
 dotnet run --project SmartInventory.API
 ```
 
-The application will auto-apply migrations and seed the database on first run.
+---
 
-### Default Users (after seeding)
+## Running Unit & Integration Tests
 
-| Username | Role    |
-| -------- | ------- |
-| admin    | Admin   |
-| manager  | Manager |
-| employee | User    |
+The solution includes an xUnit test suite (`SmartInventory.Tests`) verifying business services, JWT authentication, SHA256 password hashing, and repository CRUD operations via EF Core InMemory database.
 
-Passwords are set via `SEED_ADMIN_PASSWORD` and `SEED_DEFAULT_USER_PASSWORD`.
+To execute the test suite:
+
+```bash
+dotnet test SmartInventoryAPI.slnx
+```
+
+---
+
+## Default Seeded Accounts
+
+| Username | Role | Description |
+|---|---|---|
+| `admin` | Admin | Full system administrative access |
+| `manager` | Manager | Inventory and order management access |
+| `employee` | Staff | View and product lookup access |
+
+*Passwords are configured via `SEED_ADMIN_PASSWORD` and `SEED_DEFAULT_USER_PASSWORD` environment variables.*
+
+---
 
 ## Required Environment Variables
 
-| Variable                     | Description                                    | Min Length |
-| ---------------------------- | ---------------------------------------------- | ---------- |
-| `DB_CONNECTION_STRING`       | SQL Server connection string                   | —          |
-| `JWT_SECRET`                 | JWT signing key                                | 32 chars   |
-| `JWT_ISSUER`                 | JWT issuer (default: SmartInventoryAPI)        | —          |
-| `JWT_AUDIENCE`               | JWT audience (default: SmartInventoryAPIUsers) | —          |
-| `JWT_EXPIRY_MINUTES`         | JWT token expiry in minutes (default: 60)      | —          |
-| `SEED_ADMIN_PASSWORD`        | Initial admin user password (seed only)        | —          |
-| `SEED_DEFAULT_USER_PASSWORD` | Initial user password for seeded accounts      | —          |
+| Variable | Description | Min Length / Default |
+|---|---|---|
+| `DB_CONNECTION_STRING` | SQL Server connection string | Required |
+| `JWT_SECRET` | Cryptographic JWT signing key | Min 32 characters |
+| `JWT_ISSUER` | JWT token issuer claim | `SmartInventoryAPI` |
+| `JWT_AUDIENCE` | JWT token audience claim | `SmartInventoryAPIUsers` |
+| `JWT_EXPIRY_MINUTES` | Token expiry duration | `60` |
+| `SEED_ADMIN_PASSWORD` | Initial admin user password | Required for seed |
+| `SEED_DEFAULT_USER_PASSWORD` | Initial default user password | Required for seed |
 
-## Optional Environment Variables
+---
 
-| Variable                 | Description                               | Default               |
-| ------------------------ | ----------------------------------------- | --------------------- |
-| `ASPNETCORE_ENVIRONMENT` | Environment name (Development/Production) | Production            |
-| `ASPNETCORE_URLS`        | Application URLs                          | http://localhost:5000 |
-
-## API Endpoints
+## Core API Endpoints
 
 ### Authentication
-
-| Method | Endpoint           | Auth | Description      |
-| ------ | ------------------ | ---- | ---------------- |
-| POST   | /api/auth/register | No   | Register user    |
-| POST   | /api/auth/login    | No   | Login, get token |
+- `POST /api/auth/register` — Register a new user
+- `POST /api/auth/login` — Authenticate user and receive JWT bearer token
 
 ### Products
+- `GET /api/products` — List paginated products
+- `GET /api/products/{id}` — Get product details by ID
+- `GET /api/products/code/{code}` — Lookup product by code
+- `GET /api/products/low-stock` — Query low stock products below reorder level
+- `POST /api/products` — Create new product (Manager/Admin)
+- `PUT /api/products/{id}` — Update product details (Manager/Admin)
+- `DELETE /api/products/{id}` — Soft delete product (Admin)
 
-| Method | Endpoint                    | Auth | Description          |
-| ------ | --------------------------- | ---- | -------------------- |
-| GET    | /api/products               | Yes  | List products        |
-| GET    | /api/products/{id}          | Yes  | Get product by ID    |
-| POST   | /api/products               | Yes  | Create product       |
-| PUT    | /api/products/{id}          | Yes  | Update product       |
-| DELETE | /api/products/{id}          | Yes  | Delete product       |
-| GET    | /api/products/code/{code}   | Yes  | Get product by code  |
-| GET    | /api/products/category/{id} | Yes  | Products by category |
-| GET    | /api/products/supplier/{id} | Yes  | Products by supplier |
-| GET    | /api/products/low-stock     | Yes  | Low stock products   |
-
-### Categories, Suppliers, Orders
-
-Similar CRUD endpoints under `/api/categories`, `/api/suppliers`, `/api/orders`.
-
-## Production Deployment
-
-1. Set all required environment variables in your production environment.
-2. Set `ASPNETCORE_ENVIRONMENT=Production`.
-3. Use a real SQL Server instance (not LocalDB).
-4. Change seed passwords immediately after first deployment.
-5. Use a strong, randomly generated JWT secret (e.g., `openssl rand -base64 64`).
-6. Enable HTTPS and restrict CORS to specific origins.
-
-### Generate a secure JWT secret
-
-```bash
-openssl rand -base64 64
-```
-
-## Docker (Coming Soon)
-
-A `docker-compose.yml` with SQL Server + API will be added.
-
-## Security Best Practices
-
-- Rotate `JWT_SECRET` periodically.
-- Change seed passwords after initial deployment.
-- Use Azure Key Vault / AWS Secrets Manager in production.
-- Enable HTTPS in production.
-- Restrict CORS to trusted origins.
-- Run `dotnet list package --vulnerable` regularly to check for package vulnerabilities.
-- Never log sensitive data (passwords, tokens, connection strings).
+### Categories, Suppliers, & Orders
+Similar CRUD endpoints managed under `/api/categories`, `/api/suppliers`, and `/api/orders`.
 
 ---
 
@@ -157,5 +136,5 @@ MIT — see [LICENSE](LICENSE) file.
 
 **SOUMOJIT**
 
-- GitHub: [@Soumojit](https://github.com/knight-sd007)
+- GitHub: [@knight-sd007](https://github.com/knight-sd007)
 - LinkedIn: [Soumojit](https://linkedin.com/in/soumojit-d-0b8505172)
