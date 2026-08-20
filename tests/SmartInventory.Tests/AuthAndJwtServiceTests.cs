@@ -16,7 +16,7 @@ public class AuthAndJwtServiceTests
     }
 
     [Fact]
-    public void HashPassword_ProducesConsistentHash()
+    public void HashPassword_ProducesValidBCryptHash()
     {
         // Arrange
         var password = "SecurePassword123!";
@@ -28,7 +28,10 @@ public class AuthAndJwtServiceTests
         // Assert
         Assert.NotNull(hash1);
         Assert.NotEmpty(hash1);
-        Assert.Equal(hash1, hash2);
+        Assert.StartsWith("$2", hash1);
+        Assert.NotEqual(hash1, hash2); // BCrypt generates unique salt per hash
+        Assert.True(_jwtService.VerifyPassword(password, hash1));
+        Assert.True(_jwtService.VerifyPassword(password, hash2));
     }
 
     [Fact]
@@ -78,7 +81,7 @@ public class AuthAndJwtServiceTests
 
         var subClaim = jwtToken.Claims.FirstOrDefault(c => c.Type == "sub")?.Value;
         var userClaim = jwtToken.Claims.FirstOrDefault(c => c.Type == "username")?.Value;
-        var roleClaim = jwtToken.Claims.FirstOrDefault(c => c.Type == "role")?.Value;
+        var roleClaim = jwtToken.Claims.FirstOrDefault(c => c.Type == "role" || c.Type == System.Security.Claims.ClaimTypes.Role)?.Value;
 
         Assert.Equal("42", subClaim);
         Assert.Equal("admin_user", userClaim);

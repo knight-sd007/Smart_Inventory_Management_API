@@ -23,11 +23,30 @@ builder.Services.AddSwaggerDocumentation();
 builder.Services.AddScoped<IDbSeeder, DbSeeder>();
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAll", policy =>
+    var allowedOrigins = builder.Configuration.GetSection("CorsSettings:AllowedOrigins").Get<string[]>()
+        ?? builder.Configuration["CorsSettings:AllowedOrigins"]?.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+        ?? Array.Empty<string>();
+
+    options.AddPolicy("CorsPolicy", policy =>
     {
-        policy.AllowAnyOrigin()
-              .AllowAnyMethod()
-              .AllowAnyHeader();
+        if (builder.Environment.IsDevelopment())
+        {
+            policy.AllowAnyOrigin()
+                  .AllowAnyMethod()
+                  .AllowAnyHeader();
+        }
+        else if (allowedOrigins.Length > 0)
+        {
+            policy.WithOrigins(allowedOrigins)
+                  .AllowAnyMethod()
+                  .AllowAnyHeader();
+        }
+        else
+        {
+            policy.WithOrigins("https://app.smartinventory.internal")
+                  .AllowAnyMethod()
+                  .AllowAnyHeader();
+        }
     });
 });
 
@@ -68,7 +87,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-app.UseCors("AllowAll");
+app.UseCors("CorsPolicy");
 app.UseMiddleware<ExceptionMiddleware>();
 app.UseAuthentication();
 app.UseAuthorization();
@@ -129,7 +148,7 @@ static void ValidateConfiguration(IConfiguration configuration)
     var jwtSecret = configuration["JwtSettings:SecretKey"];
     if (string.IsNullOrWhiteSpace(jwtSecret) || jwtSecret.Length < 32)
     {
-        configuration["JwtSettings:SecretKey"] = "smart-inventory-super-secret-key-32-chars-minimum!";
+        throw new InvalidOperationException("JwtSettings:SecretKey configuration is missing or shorter than 32 characters. Application cannot start.");
     }
 
     var seedAdminPassword = configuration["SeedSettings:AdminPassword"];

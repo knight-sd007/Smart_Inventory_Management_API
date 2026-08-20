@@ -152,6 +152,7 @@ public class OrdersController : ControllerBase
     /// <param name="updateDto">Updated order details</param>
     /// <returns>No content</returns>
     [HttpPut("{id}")]
+    [Authorize(Roles = "Admin,Manager")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -159,13 +160,18 @@ public class OrdersController : ControllerBase
     {
         try
         {
+            if (string.IsNullOrWhiteSpace(updateDto.Status) || !Enum.TryParse<OrderStatus>(updateDto.Status, true, out var newStatus))
+            {
+                return BadRequest(new { message = $"Invalid order status '{updateDto.Status}'. Valid values are: Pending, Confirmed, Shipped, Delivered, Cancelled" });
+            }
+
             var existingOrder = await _orderService.GetOrderByIdAsync(id);
             if (existingOrder == null)
             {
                 return NotFound(new { message = $"Order with ID {id} not found" });
             }
 
-            existingOrder.Status = Enum.Parse<OrderStatus>(updateDto.Status);
+            existingOrder.Status = newStatus;
             existingOrder.DeliveryAddress = updateDto.DeliveryAddress;
             existingOrder.Notes = updateDto.Notes;
 
@@ -187,6 +193,7 @@ public class OrdersController : ControllerBase
     /// <param name="id">Order ID</param>
     /// <returns>No content</returns>
     [HttpDelete("{id}")]
+    [Authorize(Roles = "Admin,Manager")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Delete(int id)

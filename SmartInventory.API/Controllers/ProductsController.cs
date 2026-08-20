@@ -82,6 +82,7 @@ public class ProductsController : ControllerBase
     /// <param name="createDto">Product details</param>
     /// <returns>Created product</returns>
     [HttpPost]
+    [Authorize(Roles = "Admin,Manager")]
     [ProducesResponseType(typeof(ProductDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<ProductDto>> Create([FromBody] CreateProductDto createDto)
@@ -115,6 +116,7 @@ public class ProductsController : ControllerBase
     /// <param name="updateDto">Updated product details</param>
     /// <returns>No content</returns>
     [HttpPut("{id}")]
+    [Authorize(Roles = "Admin,Manager")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -148,6 +150,7 @@ public class ProductsController : ControllerBase
     /// <param name="id">Product ID</param>
     /// <returns>No content</returns>
     [HttpDelete("{id}")]
+    [Authorize(Roles = "Admin,Manager")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Delete(int id)

@@ -32,6 +32,9 @@ public class JwtService : IJwtService
 
         var claims = new[]
         {
+            new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.NameIdentifier, userId.ToString()),
+            new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.Name, username),
+            new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.Role, role),
             new System.Security.Claims.Claim("sub", userId.ToString()),
             new System.Security.Claims.Claim("username", username),
             new System.Security.Claims.Claim("role", role),
@@ -50,16 +53,22 @@ public class JwtService : IJwtService
 
     public string HashPassword(string password)
     {
-        using (var sha256 = SHA256.Create())
-        {
-            var hashedBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(password));
-            return Convert.ToBase64String(hashedBytes);
-        }
+        if (string.IsNullOrEmpty(password))
+            throw new ArgumentNullException(nameof(password));
+        return BCrypt.Net.BCrypt.HashPassword(password);
     }
 
     public bool VerifyPassword(string password, string hash)
     {
-        var hashOfInput = HashPassword(password);
-        return hashOfInput == hash;
+        if (string.IsNullOrEmpty(password) || string.IsNullOrEmpty(hash))
+            return false;
+        try
+        {
+            return BCrypt.Net.BCrypt.Verify(password, hash);
+        }
+        catch
+        {
+            return false;
+        }
     }
 }

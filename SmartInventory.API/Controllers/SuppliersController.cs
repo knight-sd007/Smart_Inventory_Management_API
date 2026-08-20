@@ -82,6 +82,7 @@ public class SuppliersController : ControllerBase
     /// <param name="createDto">Supplier details</param>
     /// <returns>Created supplier</returns>
     [HttpPost]
+    [Authorize(Roles = "Admin,Manager")]
     [ProducesResponseType(typeof(SupplierDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<SupplierDto>> Create([FromBody] CreateSupplierDto createDto)
@@ -115,6 +116,7 @@ public class SuppliersController : ControllerBase
     /// <param name="updateDto">Updated supplier details</param>
     /// <returns>No content</returns>
     [HttpPut("{id}")]
+    [Authorize(Roles = "Admin,Manager")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -148,6 +150,7 @@ public class SuppliersController : ControllerBase
     /// <param name="id">Supplier ID</param>
     /// <returns>No content</returns>
     [HttpDelete("{id}")]
+    [Authorize(Roles = "Admin")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Delete(int id)

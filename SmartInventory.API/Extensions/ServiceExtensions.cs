@@ -39,7 +39,12 @@ public static class ServiceExtensions
 
     public static void AddJwtAuthentication(this IServiceCollection services, IConfiguration configuration)
     {
-        var secretKey = configuration["JwtSettings:SecretKey"]!;
+        var secretKey = configuration["JwtSettings:SecretKey"];
+        if (string.IsNullOrWhiteSpace(secretKey) || secretKey.Length < 32)
+        {
+            throw new InvalidOperationException("JwtSettings:SecretKey configuration is missing or shorter than 32 characters. Application cannot start.");
+        }
+
         var issuer = configuration["JwtSettings:Issuer"] ?? "SmartInventoryAPI";
         var audience = configuration["JwtSettings:Audience"] ?? "SmartInventoryAPIUsers";
 
@@ -58,7 +63,9 @@ public static class ServiceExtensions
                     ValidateAudience = true,
                     ValidAudience = audience,
                     ValidateLifetime = true,
-                    ClockSkew = TimeSpan.Zero
+                    ClockSkew = TimeSpan.Zero,
+                    RoleClaimType = System.Security.Claims.ClaimTypes.Role,
+                    NameClaimType = System.Security.Claims.ClaimTypes.Name
                 };
             });
     }

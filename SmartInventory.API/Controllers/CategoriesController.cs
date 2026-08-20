@@ -82,6 +82,7 @@ public class CategoriesController : ControllerBase
     /// <param name="createDto">Category details</param>
     /// <returns>Created category</returns>
     [HttpPost]
+    [Authorize(Roles = "Admin,Manager")]
     [ProducesResponseType(typeof(CategoryDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<CategoryDto>> Create([FromBody] CreateCategoryDto createDto)
@@ -115,6 +116,7 @@ public class CategoriesController : ControllerBase
     /// <param name="updateDto">Updated category details</param>
     /// <returns>No content</returns>
     [HttpPut("{id}")]
+    [Authorize(Roles = "Admin,Manager")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -148,6 +150,7 @@ public class CategoriesController : ControllerBase
     /// <param name="id">Category ID</param>
     /// <returns>No content</returns>
     [HttpDelete("{id}")]
+    [Authorize(Roles = "Admin")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Delete(int id)
