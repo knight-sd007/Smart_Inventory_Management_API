@@ -81,10 +81,26 @@ pipeline {
                 script {
                     echo "Deploying public image ${IMAGE_FULL_TAG} to local OCI host..."
                     sh """
+                        mkdir -p /opt/projects/inventory-api
+
                         if [ ! -f /opt/projects/inventory-api/.env ]; then
-                            echo "ERROR: Production environment file /opt/projects/inventory-api/.env not found on OCI host!"
+                            echo "Production .env did not exist; initialized from .env.example template."
+                            cp .env.example /opt/projects/inventory-api/.env
+                            echo "NOTICE: Newly initialized /opt/projects/inventory-api/.env contains placeholders. Please populate production credentials on the host."
+                        else
+                            echo "Found existing production /opt/projects/inventory-api/.env (preserving credentials)."
+                        fi
+
+                        if [ ! -s /opt/projects/inventory-api/.env ]; then
+                            echo "ERROR: /opt/projects/inventory-api/.env is missing or empty! Production deployment aborted."
                             exit 1
                         fi
+
+                        if grep -q "your_secure_" /opt/projects/inventory-api/.env 2>/dev/null; then
+                            echo "ERROR: /opt/projects/inventory-api/.env contains unpopulated template placeholders. Populate production secrets before deploying!"
+                            exit 1
+                        fi
+
                         cp docker-compose.yml /opt/projects/inventory-api/docker-compose.yml
                         P03_IMAGE="${IMAGE_FULL_TAG}" docker compose --env-file /opt/projects/inventory-api/.env -f /opt/projects/inventory-api/docker-compose.yml pull
                         P03_IMAGE="${IMAGE_FULL_TAG}" docker compose --env-file /opt/projects/inventory-api/.env -f /opt/projects/inventory-api/docker-compose.yml up -d
