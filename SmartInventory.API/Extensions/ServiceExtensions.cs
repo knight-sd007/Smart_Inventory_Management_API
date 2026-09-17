@@ -28,7 +28,7 @@ public static class ServiceExtensions
 
     public static void AddApplicationServices(this IServiceCollection services)
     {
-        services.AddAutoMapper(typeof(MappingProfile));
+        services.AddAutoMapper(cfg => cfg.AddProfile<MappingProfile>());
 
         services.AddScoped<IProductService, Application.Services.ProductService>();
         services.AddScoped<ICategoryService, Application.Services.CategoryService>();
