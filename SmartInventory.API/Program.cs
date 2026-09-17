@@ -16,6 +16,7 @@ MapEnvironmentVariables(builder.Configuration);
 ValidateConfiguration(builder.Configuration);
 
 builder.Services.AddControllers();
+builder.Services.AddHealthChecks();
 builder.Services.AddInfrastructureServices(builder.Configuration);
 builder.Services.AddApplicationServices();
 builder.Services.AddJwtAuthentication(builder.Configuration);
@@ -92,6 +93,7 @@ app.UseMiddleware<ExceptionMiddleware>();
 app.UseAuthentication();
 app.UseAuthorization();
 
+app.MapHealthChecks("/health");
 app.MapControllers();
 
 app.Run();

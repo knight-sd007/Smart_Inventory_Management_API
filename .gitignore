@@ -52,7 +52,6 @@ appsettings.*.local.json
 *.crt
 
 # Docker
-.dockerignore
 
 # OS
 .DS_Store

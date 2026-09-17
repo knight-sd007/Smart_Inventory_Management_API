@@ -27,12 +27,13 @@ tests/SmartInventory.Tests      → Unit & Integration Test Suite (xUnit, Moq, E
 
 ### Prerequisites
 
-- .NET 10 SDK
-- PostgreSQL 16+ (local, remote, or containerized)
+- .NET 10 SDK (for local development)
+- Docker & Docker Compose (for containerized execution)
+- PostgreSQL 16+ (local, remote, or containerized via Docker Compose)
 
-### Local Setup
+### Running with Docker Compose (Recommended)
 
-1. Clone the repository:
+1. Clone the repository and navigate to the project directory:
 
 ```bash
 git clone git@github.com:knight-sd007/Smart_Inventory_Management_API.git
@@ -45,22 +46,47 @@ cd Smart_Inventory_Management_API
 cp .env.example .env
 ```
 
-3. Edit `.env` with real local development values:
+3. Edit `.env` with your secure credentials:
 
 ```env
-DB_CONNECTION_STRING=Host=localhost;Port=5432;Database=SmartInventoryDB;Username=postgres;Password=YourStrongPassword123!;
-JWT_SECRET=a_super_secret_cryptographic_key_that_is_at_least_32_characters_long
-SEED_ADMIN_PASSWORD=StrongAdminPassword123!
-SEED_DEFAULT_USER_PASSWORD=StrongUserPassword123!
+POSTGRES_DB=SmartInventoryDB
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=your_secure_postgres_password_here
+DB_CONNECTION_STRING=Host=postgres;Port=5432;Database=SmartInventoryDB;Username=postgres;Password=your_secure_postgres_password_here
+JWT_SECRET=your_secure_random_jwt_secret_minimum_32_characters_here
+SEED_ADMIN_PASSWORD=your_secure_admin_seed_password_here
+SEED_DEFAULT_USER_PASSWORD=your_secure_default_user_password_here
 ```
 
-4. Build the solution:
+4. Build and start the container stack:
+
+```bash
+docker compose up -d --build
+```
+
+5. Services will be available at:
+- **API Endpoint**: `http://127.0.0.1:5003`
+- **Swagger Documentation**: `http://127.0.0.1:5003/swagger`
+- **Health Check Probe**: `http://127.0.0.1:5003/health`
+- **PostgreSQL Database**: Internal only on compose network (port 5432, named volume `smartinventory-pgdata`)
+
+6. Stop the container stack:
+
+```bash
+docker compose down
+```
+
+### Local Setup (Without Docker)
+
+1. Ensure a PostgreSQL 16+ database is running locally.
+2. Configure `DB_CONNECTION_STRING=Host=localhost;Port=5432;Database=SmartInventoryDB;Username=postgres;Password=your_secure_postgres_password_here` in `.env`.
+3. Build the solution:
 
 ```bash
 dotnet build SmartInventoryAPI.slnx
 ```
 
-5. Run the API:
+4. Run the API:
 
 ```bash
 dotnet run --project SmartInventory.API
@@ -96,6 +122,9 @@ dotnet test SmartInventoryAPI.slnx
 
 | Variable | Description | Min Length / Default |
 |---|---|---|
+| `POSTGRES_DB` | PostgreSQL database name | `SmartInventoryDB` |
+| `POSTGRES_USER` | PostgreSQL superuser username | `postgres` |
+| `POSTGRES_PASSWORD` | PostgreSQL superuser password | Required in Docker Compose |
 | `DB_CONNECTION_STRING` | PostgreSQL connection string | Required |
 | `JWT_SECRET` | Cryptographic JWT signing key | Min 32 characters |
 | `JWT_ISSUER` | JWT token issuer claim | `SmartInventoryAPI` |

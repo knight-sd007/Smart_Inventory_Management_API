@@ -1,0 +1,52 @@
+version: "3.8"
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: ${P03_IMAGE:-smartinventory-api:latest}
+    container_name: smartinventory-api
+    ports:
+      - "127.0.0.1:5003:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - DB_CONNECTION_STRING=Host=postgres;Port=5432;Database=${POSTGRES_DB:-SmartInventoryDB};Username=${POSTGRES_USER:-postgres};Password=${POSTGRES_PASSWORD}
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_ISSUER=${JWT_ISSUER:-SmartInventoryAPI}
+      - JWT_AUDIENCE=${JWT_AUDIENCE:-SmartInventoryAPIUsers}
+      - JWT_EXPIRY_MINUTES=${JWT_EXPIRY_MINUTES:-60}
+      - SEED_ADMIN_PASSWORD=${SEED_ADMIN_PASSWORD}
+      - SEED_DEFAULT_USER_PASSWORD=${SEED_DEFAULT_USER_PASSWORD}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - smartinventory-net
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: smartinventory-db
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB:-SmartInventoryDB}
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    volumes:
+      - smartinventory-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-postgres} -d $${POSTGRES_DB:-SmartInventoryDB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+    networks:
+      - smartinventory-net
+
+volumes:
+  smartinventory-pgdata:
+
+networks:
+  smartinventory-net:
+    driver: bridge
