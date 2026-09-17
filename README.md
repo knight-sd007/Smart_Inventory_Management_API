@@ -28,7 +28,7 @@ tests/SmartInventory.Tests      → Unit & Integration Test Suite (xUnit, Moq, E
 ### Prerequisites
 
 - .NET 10 SDK
-- SQL Server (local, remote, or SQL Server Express)
+- PostgreSQL 16+ (local, remote, or containerized)
 
 ### Local Setup
 
@@ -48,7 +48,7 @@ cp .env.example .env
 3. Edit `.env` with real local development values:
 
 ```env
-DB_CONNECTION_STRING=Server=localhost;Database=SmartInventoryDB;User Id=sa;Password=YourStrongPassword123!;Encrypt=true;TrustServerCertificate=true;
+DB_CONNECTION_STRING=Host=localhost;Port=5432;Database=SmartInventoryDB;Username=postgres;Password=YourStrongPassword123!;
 JWT_SECRET=a_super_secret_cryptographic_key_that_is_at_least_32_characters_long
 SEED_ADMIN_PASSWORD=StrongAdminPassword123!
 SEED_DEFAULT_USER_PASSWORD=StrongUserPassword123!
@@ -70,7 +70,7 @@ dotnet run --project SmartInventory.API
 
 ## Running Unit & Integration Tests
 
-The solution includes an xUnit test suite (`SmartInventory.Tests`) verifying business services, JWT authentication, SHA256 password hashing, and repository CRUD operations via EF Core InMemory database.
+The solution includes an xUnit test suite (`SmartInventory.Tests`) verifying business services, JWT authentication, BCrypt password hashing, and repository CRUD operations via EF Core InMemory database.
 
 To execute the test suite:
 
@@ -96,7 +96,7 @@ dotnet test SmartInventoryAPI.slnx
 
 | Variable | Description | Min Length / Default |
 |---|---|---|
-| `DB_CONNECTION_STRING` | SQL Server connection string | Required |
+| `DB_CONNECTION_STRING` | PostgreSQL connection string | Required |
 | `JWT_SECRET` | Cryptographic JWT signing key | Min 32 characters |
 | `JWT_ISSUER` | JWT token issuer claim | `SmartInventoryAPI` |
 | `JWT_AUDIENCE` | JWT token audience claim | `SmartInventoryAPIUsers` |
@@ -126,9 +126,9 @@ Similar CRUD endpoints managed under `/api/categories`, `/api/suppliers`, and `/
 
 ---
 
-## Known Limitations
+## Security & Authentication
 
-- **Password Hashing:** Password authentication currently uses single-pass SHA-256 hashing (`SHA256.ComputeHash`). While salt is generated during authentication testing, key derivation functions such as BCrypt, Argon2, or PBKDF2 are recommended for high-security enterprise environments. SHA-256 is maintained in this release to preserve compatibility with seeded user credentials.
+- **Password Cryptography:** Password authentication uses standard BCrypt adaptive work-factor key derivation (`BCrypt.Net-Next`) with salted hashing for secure credential storage.
 
 ---
 

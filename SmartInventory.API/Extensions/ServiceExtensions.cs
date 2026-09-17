@@ -16,7 +16,7 @@ public static class ServiceExtensions
     public static void AddInfrastructureServices(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddDbContext<AppDbContext>(options =>
-            options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
+            options.UseNpgsql(configuration.GetConnectionString("DefaultConnection")));
 
         services.AddScoped<IRepository<Domain.Entities.BaseEntity>, Repository<Domain.Entities.BaseEntity>>();
         services.AddScoped<IProductRepository, ProductRepository>();

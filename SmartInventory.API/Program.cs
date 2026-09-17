@@ -142,7 +142,7 @@ static void ValidateConfiguration(IConfiguration configuration)
     var connectionString = configuration.GetConnectionString("DefaultConnection");
     if (string.IsNullOrWhiteSpace(connectionString))
     {
-        configuration["ConnectionStrings:DefaultConnection"] = "Server=localhost;Database=SmartInventoryDB;Trusted_Connection=True;TrustServerCertificate=True;";
+        throw new InvalidOperationException("ConnectionStrings:DefaultConnection (or DB_CONNECTION_STRING) configuration is missing. Application cannot start.");
     }
 
     var jwtSecret = configuration["JwtSettings:SecretKey"];
