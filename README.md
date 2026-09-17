@@ -64,9 +64,10 @@ SEED_DEFAULT_USER_PASSWORD=your_secure_default_user_password_here
 docker compose up -d --build
 ```
 
-5. Services will be available at:
-- **API Endpoint**: `http://127.0.0.1:5003`
-- **Swagger Documentation**: `http://127.0.0.1:5003/swagger`
+5. Services will be available locally at:
+- **Root URL (Redirects to Swagger)**: `http://127.0.0.1:5003/`
+- **Swagger Documentation (UI)**: `http://127.0.0.1:5003/swagger`
+- **OpenAPI Document (JSON)**: `http://127.0.0.1:5003/swagger/v1/swagger.json`
 - **Health Check Probe**: `http://127.0.0.1:5003/health`
 - **PostgreSQL Database**: Internal only on compose network (port 5432, named volume `smartinventory-pgdata`)
 
@@ -75,6 +76,21 @@ docker compose up -d --build
 ```bash
 docker compose down
 ```
+
+---
+
+## Production Deployment & Public Routing
+
+In production on Oracle Cloud Infrastructure (OCI), the API container is deployed via Docker Compose and bound to `127.0.0.1:5003:8080`. Public HTTPS ingress is provided by a Cloudflare Zero Trust Tunnel (`cloudflared`) routing external traffic to the local container port.
+
+### Intended Public Endpoints:
+- **Public Domain**: `https://inventory.vaikuntrix.in/` (automatically redirects to `/swagger`)
+- **Swagger UI**: `https://inventory.vaikuntrix.in/swagger`
+- **OpenAPI Schema**: `https://inventory.vaikuntrix.in/swagger/v1/swagger.json`
+- **Health Check**: `https://inventory.vaikuntrix.in/health`
+
+> [!NOTE]
+> Cloudflare Tunnel and DNS ingress configuration is managed as external deployment-host infrastructure and is decoupled from repository source code. Local container execution does not require Cloudflare, and public endpoint availability has not yet been verified at this pre-deployment stage.
 
 ### Local Setup (Without Docker)
 

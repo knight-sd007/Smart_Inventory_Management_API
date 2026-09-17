@@ -81,13 +81,13 @@ catch (Exception ex)
     logger.LogWarning(ex, "Could not complete database migration/seeding on startup. API will proceed.");
 }
 
-if (app.Environment.IsDevelopment())
+app.UseSwagger();
+app.UseSwaggerUI(options =>
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+    options.SwaggerEndpoint("/swagger/v1/swagger.json", "Smart Inventory Management API v1");
+    options.RoutePrefix = "swagger";
+});
 
-app.UseHttpsRedirection();
 app.UseCors("CorsPolicy");
 app.UseMiddleware<ExceptionMiddleware>();
 app.UseAuthentication();
@@ -95,6 +95,8 @@ app.UseAuthorization();
 
 app.MapHealthChecks("/health");
 app.MapControllers();
+app.MapGet("/", () => Results.Redirect("/swagger"))
+   .ExcludeFromDescription();
 
 app.Run();
 
