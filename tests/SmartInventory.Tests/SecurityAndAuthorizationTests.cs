@@ -75,7 +75,7 @@ public class SecurityAndAuthorizationTests
         var provider = services.BuildServiceProvider();
 
         // Assert
-        var jwtService = provider.GetService<JwtService>();
+        var jwtService = provider.GetService<IJwtService>();
         Assert.NotNull(jwtService);
     }
 

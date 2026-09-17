@@ -48,7 +48,7 @@ public static class ServiceExtensions
         var issuer = configuration["JwtSettings:Issuer"] ?? "SmartInventoryAPI";
         var audience = configuration["JwtSettings:Audience"] ?? "SmartInventoryAPIUsers";
 
-        services.AddSingleton(new JwtService(secretKey, issuer, audience));
+        services.AddSingleton<IJwtService>(new JwtService(secretKey, issuer, audience));
         services.AddScoped<IAuthService, AuthService>();
 
         services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
