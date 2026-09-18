@@ -31,7 +31,7 @@ public class DbSeeder : IDbSeeder
     {
         try
         {
-            if (_context.Users.Any() || _context.Categories.Any())
+            if (await _context.Users.AnyAsync() || await _context.Categories.AnyAsync())
             {
                 _logger.LogInformation("Database already seeded. Skipping seed operation.");
                 return;
@@ -39,14 +39,47 @@ public class DbSeeder : IDbSeeder
 
             _logger.LogInformation("Starting database seeding...");
 
-            await SeedUsersAsync();
-            await SeedCategoriesAsync();
-            await SeedSuppliersAsync();
-            await SeedProductsAsync();
-            await SeedOrdersAsync();
+            if (_context.Database.IsRelational())
+            {
+                await using var transaction = await _context.Database.BeginTransactionAsync();
+                try
+                {
+                    await SeedUsersAsync();
+                    await SeedCategoriesAsync();
+                    await SeedSuppliersAsync();
+                    await _context.SaveChangesAsync();
 
-            await _context.SaveChangesAsync();
-            _logger.LogInformation("Database seeding completed successfully.");
+                    await SeedProductsAsync();
+                    await _context.SaveChangesAsync();
+
+                    await SeedOrdersAsync();
+                    await _context.SaveChangesAsync();
+
+                    await transaction.CommitAsync();
+                    _logger.LogInformation("Database seeding completed successfully.");
+                }
+                catch (Exception ex)
+                {
+                    await transaction.RollbackAsync();
+                    _logger.LogError(ex, "Transaction rolled back due to error during database seeding.");
+                    throw;
+                }
+            }
+            else
+            {
+                await SeedUsersAsync();
+                await SeedCategoriesAsync();
+                await SeedSuppliersAsync();
+                await _context.SaveChangesAsync();
+
+                await SeedProductsAsync();
+                await _context.SaveChangesAsync();
+
+                await SeedOrdersAsync();
+                await _context.SaveChangesAsync();
+
+                _logger.LogInformation("Database seeding completed successfully.");
+            }
         }
         catch (Exception ex)
         {
